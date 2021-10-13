@@ -1,0 +1,83 @@
+<html>
+    <head>
+        <title>Benvenuto</title>
+        <link rel="stylesheet" href="../static/css/my.css">
+        <link href="../static/css/nprogress.css" rel="stylesheet">
+        <script src="../static/js/nprogress.js"></script>
+        <script src="../static/js/jquery-3.4.1.js"></script>
+        <script src="../static/js/table.js"></script>
+    </head>
+    <body>
+        <form class="center" id="form1" onsubmit="return false;">
+            <div class="center">
+                <div class="search">
+                <input id="query" type="text" class="searchTerm" name="query" placeholder="Search playlists">
+                <button type="submit" class="searchButton">Search</button>
+                </div>
+            
+            </div>
+        </form>
+        <div class="table-wrapper"> 
+            <table id="personDataTable" class="fl-table center">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Followers</th>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>N. Songs</th>
+                        <th>Owner Id</th>
+                        <th>Contact</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                </tbody>
+            </table>
+        </div>
+    </body>
+    <script>
+        function drawTable(data) {
+            $('#personDataTable').find('tbody').empty();
+            for (var i = 0; i < data.length; i++) {
+                drawRow(data[i]);
+            }
+        }
+
+        function drawRow(rowData) {
+            var row = $("<tr />")
+            $("#tbody").append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
+            row.append($("<td>" + rowData.playlist_description + "</td>"));
+            row.append($("<td>" + rowData.playlist_followers + "</td>"));
+            row.append($("<td>" + rowData.playlist_id + "</td>"));
+            row.append($("<td>" + rowData.playlist_name + "</td>"));
+            row.append($("<td>" + rowData.playlist_number_of_songs + "</td>"));
+            row.append($("<td>" + rowData.playlist_owner_id + "</td>"));
+            row.append($("<td>" + rowData.playlist_reference + "</td>"));
+        }
+        $("#form1").submit(function(e){
+          NProgress.start();
+          NProgress.configure({ minimum: 0.3, speed: 200 });
+          NProgress.inc(0.4);
+          e.preventDefault();
+          var searchbar = $('#query').val();
+          $.ajax({
+            url : '/api/playlists',
+            type : 'POST',
+            data : {
+              query : searchbar,
+            },
+            complete : function(response) {
+              NProgress.done(true);
+              if (response.responseJSON.status == "error"){
+                console.log(response.responseJSON);
+              }
+              else{
+                console.log(response.responseJSON);
+                var json = response.responseJSON.data
+                drawTable(json);
+              }
+            },
+          });
+        });
+      </script>
+</html>
