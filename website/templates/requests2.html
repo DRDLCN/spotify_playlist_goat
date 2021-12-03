@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content">
+  {% include 'top_banner.html' %}
+
+  <div class="card card-chat overflow-hidden">
+    <div class="card-body d-flex p-0 h-100">
+      <div class="chat-sidebar">
+        <div class="contacts-list scrollbar-overlay">
+          <div class="nav nav-tabs border-0 flex-column" role="tablist" aria-orientation="vertical">
+            {% for r in requests %}
+            <div data-id-request="{{r["id_request"]}}" class="hover-actions-trigger chat-contact nav-item {{ 'active' if loop.index0 == 0 else '' }}" role="tab" id="chat-link-{{loop.index0}}" data-bs-toggle="tab" data-bs-target="#chat-{{loop.index0}}" aria-controls="chat-{{loop.index0}}" aria-selected="{{ 'true' if loop.index0 == 0 else 'false' }}">
+              <div class="d-flex p-3">
+                <div class="avatar avatar-xl status-online">
+                  <img class="rounded-circle" src="{{r["image_url"]}}" alt="" />
+                </div>
+                <div class="flex-1 chat-contact-body ms-2 d-md-none d-lg-block">
+                  <div class="d-flex justify-content-between">
+                    <h6 class="mb-0 chat-contact-title">{{r["playlist_name"]}}</h6><span class="message-time fs--2">Tue</span>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="chat-contact-content pe-3">
+                      Active
+                    </div>
+                    <div class="position-absolute bottom-0 end-0 hover-hide">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <form class="contacts-search-wrapper">
+          <div class="form-group mb-0 position-relative d-md-none d-lg-block w-100 h-100">
+            <input class="form-control form-control-sm chat-contacts-search border-0 h-100" type="text" placeholder="Search contacts ..." /><span class="fas fa-search contacts-search-icon"></span>
+          </div>
+          <button class="btn btn-sm btn-transparent d-none d-md-inline-block d-lg-none"><span class="fas fa-search fs--1"></span></button>
+        </form>
+      </div>
+      <div class="tab-content card-chat-content">
+        {% for r in requests %}
+        <div class="tab-pane card-chat-pane {{ 'active' if loop.index0 == 0 else '' }}" id="chat-{{loop.index0}}" role="tabpanel" aria-labelledby="chat-link-{{loop.index0}}">
+          <div class="chat-content-header">
+            <div class="row flex-between-center">
+              <div class="col-6 col-sm-8 d-flex align-items-center"><a class="pe-3 text-700 d-md-none contacts-list-show" href="#!">
+                  <div class="fas fa-chevron-left"></div>
+                </a>
+                <div class="min-w-0">
+                  <h5 class="mb-0 text-truncate fs-0">{{r["playlist_name"]}}</h5>
+                  <div class="fs--2 text-400">Active On Chat
+                  </div>
+                </div>
+              </div>
+              <div class="col-auto">
+              </div>
+            </div>
+          </div>
+          <div class="chat-content-body" style="display: inherit;">
+            <div class="chat-content-scroll-area scrollbar">
+              {% for msg in r["chat"] %}
+              {% if not msg["lato"] %}
+              <div class="d-flex p-3">
+                <div class="avatar avatar-l me-2">
+                  <img class="rounded-circle" src="{{r["image_url"]}}" alt="" />
+                </div>
+                <div class="flex-1">
+                  <div class="w-xxl-75">
+                    <div class="hover-actions-trigger d-flex align-items-center">
+                      <div class="chat-message bg-200 p-2 rounded-2">{{msg["data"]}}</div>
+                    </div>
+                    <div class="text-400 fs--2"><span>{{msg["created_at"]}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% else %}
+              <div class="d-flex p-3">
+                <div class="flex-1 d-flex justify-content-end">
+                  <div class="w-100 w-xxl-75">
+                    <div class="hover-actions-trigger d-flex flex-end-center">
+                      <div class="bg-primary text-white p-2 rounded-2 chat-message light">{{msg["data"]}}
+                      </div>
+                    </div>
+                    <div class="text-400 fs--2 text-end">{{msg["created_at"]}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <form class="chat-editor-area">
+          <input class="d-none" type="file" id="chat-file-upload" />
+          <div class="btn btn-link p-0 emoji-icon" data-emoji-button="data-emoji-button"><span class="far fa-laugh-beam"></span></div>
+          <div class="emojiarea-editor outline-none scrollbar" contenteditable="true"></div>
+          <button id="send-chat" class="btn btn-sm btn-send" type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% include 'footer.html' %}
+</div>
+{% endblock %}
+
+{% block script %}
+  <!-- Initializations -->
+  <script src="../static/vendors/glightbox/glightbox.min.js"></script>
+  <script src="../static/js/emoji-button.js"></script>
+  <script>
+
+
+    //$('.chat_users_elements.active').click();
+
+    $("#send-chat").click(function(e){
+        e.preventDefault(e);
+        var text = $('.emojiarea-editor.outline-none.scrollbar').html();
+        var id_request = $('.hover-actions-trigger.chat-contact.nav-item.active').data("id-request");
+        console.log(id_request,text)
+        $.ajax({
+        url : '/api/send_message',
+        type : 'POST',
+        data : {
+          text : text,
+          id_request: id_request
+        },
+        complete : function(response) {
+          if (response.responseJSON.status == "error"){
+            console.log(response.responseJSON);
+          }
+          else{
+            console.log(response.responseJSON);
+            location.reload();
+          }
+        },
+      }); 
+    });
+  </script>
+{% endblock %}

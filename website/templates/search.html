@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content">
+  {% include 'top_banner.html' %}
+  <div class="row mb-3">
+    <div class="col">
+      <div class="card bg-100 shadow-none border">
+        <div class="row gx-0 flex-between-center">
+          <div class="col-sm-auto d-flex align-items-center"><img class="ms-n2" src="../static/img/illustrations/crm-bar-chart.png" alt="" width="90" />
+            <div>
+              <h6 class="text-primary fs--1 mb-0">Welcome to the</h6>
+              <h4 class="text-primary fw-bold mb-0">Spotify Playlist <span class="text-info fw-medium">SEARCH ENGINE</span></h4>
+            </div><img class="ms-n4 d-md-none d-lg-block" src="../static/img/illustrations/crm-line-chart.png" alt="" width="150" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col">
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-lg-4 border-lg-end border-bottom border-lg-0 py-3 py-lg-0">
+              <div class="d-flex flex-between-center mb-3">
+                <div class="d-flex align-items-center">
+                  <div class="search-box" data-list='{"valueNames":["title"]}'>
+                    <form id="form1" onsubmit="return false;" class="position-relative" data-bs-toggle="search" data-bs-display="static">
+                      <input id="query" class="form-control search-input fuzzy-search" type="search" placeholder="Keys words..." aria-label="Search" />
+                      <span class="fas fa-search search-box-icon"></span>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6 border-lg-end border-bottom border-lg-0 pb-3 pb-lg-0">
+              <div class="d-flex flex-between-center mb-3">
+                <div class="d-flex align-items-center">
+                  <div class="icon-item icon-item-sm bg-soft-primary shadow-none me-2 bg-soft-primary"><span class="fs--2 fas fa-phone text-primary"></span></div>
+                  <h6 class="mb-0">Select Song To Promote</h6>
+                </div>
+                <div class="dropdown font-sans-serif btn-reveal-trigger">
+                  <button class="btn btn-link text-600 btn-sm dropdown-toggle dropdown-caret-none btn-reveal" type="button" id="dropdown-new-contact" data-bs-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false"><span class="fas fa-ellipsis-h fs--2"></span></button>
+                  <div class="dropdown-menu dropdown-menu-end border py-2" aria-labelledby="dropdown-new-contact"><a class="dropdown-item" href="#!">View</a><a class="dropdown-item" href="#!">Export</a>
+                    <div class="dropdown-divider"></div><a class="dropdown-item text-danger" href="#!">Remove</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-2 pb-3 pb-lg-0">
+              <div class="d-flex flex-between-center">
+                <button id="submit-query" class="btn btn-primary me-1 mb-3" type="button">
+                  Search<span class="fas fa-search ms-1" data-fa-transform="shrink-3"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-responsive scrollbar">
+          <table id="table1" class="table table-hover table-striped overflow-hidden"  style="table-layout: fixed;">
+            <thead>
+              <tr>
+                <th class="col-md-6" scope="col">Title</th>
+                <th class="col-md-1" scope="col">N. Followers</th>
+                <th class="col-md-1" scope="col">N. Songs</th>
+                <th class="col-md-1" scope="col">Genre</th>
+                <th class="col-md-3" class="text-end" scope="col"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody1">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% include 'footer.html' %}
+</div>
+{% endblock %}
+
+{% block script %}
+  <!-- Initializations -->
+  <script>
+    function drawTable(data) {
+        $('#table1').find('tbody').empty();
+        for (var i = 0; i < data.length; i++) {
+            drawRow(data[i]);
+        }
+    }
+
+    function drawRow(rowData) {
+      if (rowData.promo == true){
+        var color ="table-danger";
+        var name = "(PROMOTION &#128293; &#128293; &#128293;)"
+      }
+      else{
+        var color = "";
+        var name = "";
+      }
+      var row = $("<tr data-id='"+rowData.playlist_id+"' class='align-middle "+color+"' />")
+      $("#tbody1").append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
+      row.append($('<td class="col-md-6 text-truncate"> <div class="d-flex align-items-center"> <div class="avatar avatar-xl"> <img class="rounded-circle" src="'+rowData.image_url+'" alt="" /> </div> <div class="ms-2"><a href="https://open.spotify.com/playlist/' + rowData.playlist_id + '" target="_blank">' + rowData.playlist_name + '   ' + name + '</a></div> </div> </td>'));
+      row.append($('<td class="col-md-1 text-truncate">'+rowData.playlist_followers+'</td> '));
+      row.append($('<td class="col-md-1 text-truncate">'+rowData.playlist_number_of_songs+'</td> '));
+      row.append($('<td class="col-md-1 text-truncate">Trap</td> '));
+      if (rowData.status === "not_requested"){
+        row.append($('<td class="col-md-3 text-truncate"><button data-id="'+rowData.playlist_id+'" class="not_requested btn rounded-pill d-block badge-soft-warning" type="button"> Ask For A Placement <span class="ms-1 fas fa-question" data-fa-transform="shrink-2"></span></button></td>'));    
+      }
+      else if (rowData.status === "pending") {
+        row.append($('<td class="col-md-3 text-truncate"><button data-id="'+rowData.playlist_id+'" class="pending btn rounded-pill d-block badge-soft-success" type="button">Asked, wait response <span class="ms-1 fas fa-check" data-fa-transform="shrink-2"></span></button></td>'));
+      }
+    }
+
+    $("#submit-query").click(function() {
+      NProgress.start();
+      NProgress.configure({ minimum: 0.3, speed: 200 });
+      NProgress.inc(0.4);
+      var searchbar = $('#query').val();
+      console.log(searchbar)
+      $.ajax({
+        url : '/api/playlists',
+        type : 'POST',
+        data : {
+          query : searchbar,
+        },
+        complete : function(response) {
+          NProgress.done(true);
+          if (response.responseJSON.status == "error"){
+            console.log(response.responseJSON);
+          }
+          else{
+            console.log(response.responseJSON);
+            var json = response.responseJSON.data
+            drawTable(json);
+          }
+        },
+      }); 
+    });
+
+    $("body").on('click', ".not_requested", function() {
+      var id = $(this).data("id");
+      console.log(id);
+      $(this).removeClass('placement').addClass('pending');
+      $(this).html("Asked, wait response <span class='ms-1 fas fa-check' data-fa-transform='shrink-2'></span>");
+      $(this).removeClass('badge-soft-warning').addClass('badge-soft-success');
+      $.ajax({
+        url : '/api/add_request',
+        type : 'GET',
+        data : {
+          id : id,
+        },
+        dataType: "json",
+        complete : function(response) {
+          if (response.responseJSON.status == "error"){
+            console.log(response.responseJSON);
+          }
+          else{
+            console.log(response.responseJSON);
+          }
+        },
+      }); 
+    });
+
+    $( document ).ready(function() {
+      $.ajax({
+        url : '/api/get_random_playlists_promo',
+        type : 'GET',
+        dataType: "json",
+        complete : function(response) {
+          if (response.responseJSON.status == "error"){
+            console.log(response.responseJSON);
+          }
+          else{
+            console.log(response.responseJSON);
+            var json = response.responseJSON.data
+            drawTable(json);
+          }
+        },
+      }); 
+    });
+
+  </script>
+{% endblock %}
